@@ -4,7 +4,8 @@ const form = document.querySelector('#chat-form');
 const input = document.querySelector('#message');
 const note = document.querySelector('#note');
 
-// Chat message दिखाना
+let lastLanguage = 'hi-IN';
+
 function addBubble(text, who) {
   const el = document.createElement('div');
   el.className = `bubble ${who}`;
@@ -13,74 +14,141 @@ function addBubble(text, who) {
   el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// BABY की आवाज़
-function speak(text) {
-  if (!('speechSynthesis' in window)) {
-    note.textContent = 'इस browser में बोलकर जवाब देने की सुविधा उपलब्ध नहीं है।';
+// Language detection
+function detectLanguage(text) {
+  if (/[\u0600-\u06FF]/.test(text)) return 'ur-PK';
+
+  const t = text.toLowerCase();
+
+  const marathiWords =
+    /\b(namaskar|kasa ahes|kashi ahes|mala|majha|majhi|tumhi|ahe|aahe|kay|dhanyawad)\b|नमस्कार|माझं|माझे|माझी|मला|तुम्ही|काय|आहे|आहोत|धन्यवाद|छान|बरं|करा|सांगा/;
+
+  if (marathiWords.test(t)) return 'mr-IN';
+
+  if (/[a-z]/i.test(text)) return 'en-IN';
+
+  return 'hi-IN';
+}
+
+// Voice engine
+function speak(text, language) {
+  if (!window.speechSynthesis) {
+    note.textContent = 'Voice is not supported in this browser.';
     return;
   }
 
   const synth = window.speechSynthesis;
   synth.cancel();
-  synth.resume();
 
   const speech = new SpeechSynthesisUtterance(text);
-  speech.lang = 'hi-IN';
-  speech.rate = 0.85;
-  speech.pitch = 1.2;
+  speech.lang = language;
+  speech.rate = 0.9;
+  speech.pitch = 1.05;
   speech.volume = 1;
 
+  const voices = synth.getVoices();
+  const prefix = language.toLowerCase().split('-')[0];
+
+  const voice = voices.find(v =>
+    v.lang.toLowerCase() === language.toLowerCase()
+  ) || voices.find(v =>
+    v.lang.toLowerCase().startsWith(prefix)
+  );
+
+  if (voice) speech.voice = voice;
+
   speech.onstart = () => {
-    note.textContent = 'BABY बोल रहा है... 🔊';
+    note.textContent = '🔊 BABY बोल रही है...';
   };
 
   speech.onend = () => {
-    note.textContent = 'BABY तैयार है 😊';
+    note.textContent = 'BABY Ready है 😊';
   };
 
-  speech.onerror = () => {
-    note.textContent = 'आवाज़ नहीं चल पाई। मोबाइल की Text-to-speech setting जाँचें।';
+  speech.onerror = (event) => {
+    note.textContent = 'Voice Error: ' + event.error;
   };
 
   synth.speak(speech);
+  synth.resume();
 }
 
-// BABY का जवाब
-function reply(text) {
+// Four-language replies
+function reply(text, lang) {
   const t = text.toLowerCase();
 
-  if (/hello|hi|नमस्ते|हेलो/.test(t)) {
-    return 'Hello Boss! 😊 मैं BABY हूँ। बताइए, क्या करना है?';
+  if (/hello|hi|hey|नमस्ते|हेलो|السلام علیکم|سلام|नमस्कार/.test(t)) {
+    if (lang === 'ur-PK')
+      return 'وعلیکم السلام باس! 😊 میں بیبی ہوں۔ بتائیں، میں آپ کی کیا مدد کر سکتی ہوں؟';
+
+    if (lang === 'mr-IN')
+      return 'नमस्कार Boss! 😊 मी BABY आहे. सांगा, मी तुमची काय मदत करू?';
+
+    if (lang === 'en-IN')
+      return 'Hello Boss! 😊 I am BABY. How can I help you?';
+
+    return 'नमस्ते Boss! 😊 मैं BABY हूँ। बताइए, क्या करना है?';
   }
 
-  if (/नाम|name/.test(t)) {
+  if (/your name|what is your name|name|नाम|نا م|نام/.test(t)) {
+    if (lang === 'ur-PK') return 'میرا نام BABY AI ہے۔';
+    if (lang === 'mr-IN') return 'माझं नाव BABY AI आहे.';
+    if (lang === 'en-IN') return 'My name is BABY AI.';
     return 'मेरा नाम BABY AI है।';
   }
 
-  if (/समय|time/.test(t)) {
-    return 'आपके डिवाइस का समय: ' + new Date().toLocaleTimeString();
+  if (/time|समय|وقت|वेळ/.test(t)) {
+    const time = new Date().toLocaleTimeString();
+
+    if (lang === 'ur-PK') return 'موجودہ وقت ہے: ' + time;
+    if (lang === 'mr-IN') return 'आत्ताची वेळ आहे: ' + time;
+    if (lang === 'en-IN') return 'The current time is: ' + time;
+    return 'अभी का समय है: ' + time;
   }
 
-  if (/तारीख|date|आज/.test(t)) {
-    return 'आज की तारीख: ' + new Date().toLocaleDateString();
+  if (/date|today|तारीख|आज|تاریخ|آج|दिनांक/.test(t)) {
+    const date = new Date().toLocaleDateString();
+
+    if (lang === 'ur-PK') return 'آج کی تاریخ ہے: ' + date;
+    if (lang === 'mr-IN') return 'आजची तारीख आहे: ' + date;
+    if (lang === 'en-IN') return 'Today’s date is: ' + date;
+    return 'आज की तारीख है: ' + date;
   }
 
-  if (/todo|to-do|काम/.test(t)) {
-    return 'ज़रूर Boss! अपना पहला काम बताइए, हम आपकी to-do list बनाएँगे।';
+  if (/how are you|कैसे हो|کیسی ہو|کیسے ہو|कशी आहेस|कसा आहेस/.test(t)) {
+    if (lang === 'ur-PK') return 'میں بالکل ٹھیک ہوں باس! آپ کیسے ہیں؟';
+    if (lang === 'mr-IN') return 'मी एकदम छान आहे Boss! तुम्ही कसे आहात?';
+    if (lang === 'en-IN') return 'I am doing great, Boss! How are you?';
+    return 'मैं बिल्कुल बढ़िया हूँ Boss! आप कैसे हैं?';
   }
 
-  if (/कैसे हो|how are you/.test(t)) {
-    return 'मैं एकदम बढ़िया हूँ Boss! आप कैसे हैं?';
+  if (/thank you|thanks|धन्यवाद|شکریہ/.test(t)) {
+    if (lang === 'ur-PK') return 'آپ کا بہت شکریہ باس!';
+    if (lang === 'mr-IN') return 'तुमचं स्वागत आहे Boss!';
+    if (lang === 'en-IN') return 'You are welcome, Boss!';
+    return 'आपका स्वागत है Boss!';
   }
 
-  if (/धन्यवाद|thank you|thanks/.test(t)) {
-    return 'आपका स्वागत है Boss! 😊';
+  if (/help|मदद|مدد|मदत/.test(t)) {
+    if (lang === 'ur-PK') return 'جی باس! بتائیں آپ کو کس چیز میں مدد چاہیے؟';
+    if (lang === 'mr-IN') return 'नक्की Boss! तुम्हाला कशात मदत हवी आहे?';
+    if (lang === 'en-IN') return 'Of course Boss! What do you need help with?';
+    return 'ज़रूर Boss! बताइए आपको किस चीज़ में मदद चाहिए?';
   }
 
-  return 'Boss, मैं BABY AI हूँ। अभी मेरा शुरुआती prototype चल रहा है। असली AI जवाबों के लिए हमें सुरक्षित AI backend जोड़ना होगा।';
+  if (lang === 'ur-PK')
+    return 'باس، میں BABY AI ہوں۔ ابھی میرا ابتدائی پروٹوٹائپ ہے۔';
+
+  if (lang === 'mr-IN')
+    return 'Boss, मी BABY AI आहे. सध्या माझं सुरुवातीचं prototype सुरू आहे.';
+
+  if (lang === 'en-IN')
+    return 'Boss, I am BABY AI. I am currently a starter prototype.';
+
+  return 'Boss, मैं BABY AI हूँ। अभी मेरा शुरुआती prototype चल रहा है।';
 }
 
-// Message भेजना और जवाब देना
+// Chat system
 form.addEventListener('submit', (e) => {
   e.preventDefault();
 
@@ -89,15 +157,17 @@ form.addEventListener('submit', (e) => {
 
   addBubble(value, 'user');
 
-  const answer = reply(value);
+  lastLanguage = detectLanguage(value);
+
+  const answer = reply(value, lastLanguage);
   addBubble(answer, 'baby');
 
-  speak(answer);
+  speak(answer, lastLanguage);
 
   input.value = '';
 });
 
-// Quick prompt buttons
+// Quick prompts
 document.querySelectorAll('[data-prompt]').forEach((btn) => {
   btn.addEventListener('click', () => {
     input.value = btn.dataset.prompt;
@@ -105,33 +175,44 @@ document.querySelectorAll('[data-prompt]').forEach((btn) => {
   });
 });
 
-// Voice input
+// Microphone
 const SpeechRecognition =
   window.SpeechRecognition || window.webkitSpeechRecognition;
 
-document.querySelector('#mic').addEventListener('click', () => {
-  if (!SpeechRecognition) {
-    note.textContent = 'इस browser में voice recognition उपलब्ध नहीं है। Chrome इस्तेमाल करें।';
-    return;
-  }
+const mic = document.querySelector('#mic');
 
-  const recognition = new SpeechRecognition();
-  recognition.lang = 'hi-IN';
-  recognition.interimResults = false;
+if (mic) {
+  mic.addEventListener('click', () => {
+    if (!SpeechRecognition) {
+      note.textContent = 'Voice recognition is not supported. Please use Chrome.';
+      return;
+    }
 
-  recognition.onresult = (event) => {
-    input.value = event.results[0][0].transcript;
-    form.requestSubmit();
+    const recognition = new SpeechRecognition();
+    recognition.lang = lastLanguage;
+    recognition.interimResults = false;
+
+    recognition.onresult = (event) => {
+      input.value = event.results[0][0].transcript;
+      form.requestSubmit();
+    };
+
+    recognition.onerror = () => {
+      note.textContent = 'Please check microphone permission.';
+    };
+
+    recognition.start();
+  });
+}
+
+// Load voice list
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = () => {
+    window.speechSynthesis.getVoices();
   };
+}
 
-  recognition.onerror = () => {
-    note.textContent = 'Voice input नहीं चल पाया। Microphone permission जाँचें।';
-  };
-
-  recognition.start();
-});
-
-// PWA service worker
+// Service worker
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
 }
