@@ -23,6 +23,8 @@ function speak(text) {
 
   const speech = new SpeechSynthesisUtterance(text);
   speech.lang = 'hi-IN';
+speech.rate = 0.85;
+speech.pitch = 1.2;
   speech.rate = 0.9;
   speech.pitch = 1.15;
   speech.volume = 1;
