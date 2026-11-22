@@ -212,6 +212,20 @@ if ('speechSynthesis' in window) {
   };
 }
 
+document.addEventListener('click', function babyVoiceTest() {
+  const test = new SpeechSynthesisUtterance(
+    'Hello Boss, I am Baby. नमस्ते Boss!'
+  );
+
+  test.lang = 'hi-IN';
+  test.volume = 1;
+  test.rate = 0.9;
+
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(test);
+}, { once: true });
+
+
 // Service worker
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
   navigator.serviceWorker.register('./sw.js').catch(() => {});
