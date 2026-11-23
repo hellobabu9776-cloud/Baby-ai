@@ -1,44 +1,87 @@
+
 <!doctype html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#111827">
-  <meta name="description" content="BABY AI - your personal assistant">
+  <meta name="description" content="BABY AI - Your Personal Assistant">
+
   <title>BABY AI</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css">
+
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./style.css">
 </head>
+
 <body>
   <main class="app">
+
     <header>
       <div class="logo">B</div>
-      <div><p class="eyebrow">YOUR PERSONAL ASSISTANT</p><h1>BABY AI</h1></div>
+
+      <div>
+        <p class="eyebrow">YOUR PERSONAL ASSISTANT</p>
+        <h1>BABY AI</h1>
+      </div>
+
       <span class="status">● Ready</span>
     </header>
+
     <section class="welcome">
       <p class="eyebrow">WELCOME BACK</p>
       <h2>Hello Boss! मैं BABY हूँ।</h2>
-      <p>आप मुझसे chat कर सकते हैं या voice input इस्तेमाल कर सकते हैं।</p>
+      <p>आप मुझसे हिंदी, English, Urdu और Marathi में बात कर सकते हैं।</p>
     </section>
+
     <section class="chat" aria-live="polite" id="chat">
-      <div class="bubble baby">नमस्ते Boss! आज मैं आपकी क्या मदद करूँ?</div>
-    </section>
-    <form id="chat-form" class="composer">
-      <input id="message" type="text" placeholder="BABY से कुछ पूछिए..." autocomplete="off">
-      <button type="button" id="mic" class="secondary" aria-label="Voice input">🎙️</button>
-      <button type="submit">Send</button>
-    </form>
-    <p class="note" id="note">यह शुरुआती prototype है। AI जवाब, online search और cloud sync अभी जोड़े जाने बाकी हैं।</p>
-    <section class="tools">
-      <h3>Quick actions</h3>
-      <div class="actions">
-        <button data-prompt="आज के लिए एक to-do list बनाओ">📝 To-do list</button>
-        <button data-prompt="मुझे एक reminder लिखने में मदद करो">⏰ Reminder</button>
-        <button data-prompt="मुझे कुछ नया सिखाओ">📚 Learn</button>
+      <div class="bubble baby">
+        नमस्ते Boss! ❤️ आज मैं आपकी क्या मदद करूँ?
       </div>
     </section>
+
+    <form id="chat-form" class="composer">
+      <input
+        id="message"
+        type="text"
+        placeholder="BABY से कुछ पूछिए..."
+        autocomplete="off"
+        required
+      >
+
+      <button
+        type="button"
+        id="mic"
+        class="secondary"
+        aria-label="Voice input"
+      >🎙️</button>
+
+      <button type="submit">Send</button>
+    </form>
+
+    <p class="note" id="note">
+      BABY AI Ready ❤️
+    </p>
+
+    <section class="tools">
+      <h3>Quick actions</h3>
+
+      <div class="actions">
+        <button type="button" data-prompt="आज के लिए एक to-do list बनाओ">
+          📝 To-do list
+        </button>
+
+        <button type="button" data-prompt="मुझे एक reminder लिखने में मदद करो">
+          ⏰ Reminder
+        </button>
+
+        <button type="button" data-prompt="मुझे कुछ नया सिखाओ">
+          📚 Learn
+        </button>
+      </div>
+    </section>
+
   </main>
-  <script src="app.js"></script>
+
+  <script src="./app.js"></script>
 </body>
 </html>
